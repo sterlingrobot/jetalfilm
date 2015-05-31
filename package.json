@@ -1,0 +1,26 @@
+{
+  "name": "jetalfilm",
+  "version": "1.0.0",
+  "description": "Website for J et.al. film, by Story Architech",
+  "main": "index.php",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sterlingrobot/jetalfilm.git"
+  },
+  "keywords": [
+    "documentary",
+    "film",
+    "dissassociative",
+    "identity",
+    "disorder"
+  ],
+  "author": "Tor Gilbertson <sterlingrobot@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sterlingrobot/jetalfilm/issues"
+  },
+  "homepage": "https://github.com/sterlingrobot/jetalfilm"
+}
