@@ -48,12 +48,20 @@ module.exports = function(grunt) {
         },
         // Copy things to a temp dir, and only change things in the temp dir
         copy: {
-            dist: {
+            output: {
                 files: [{
                     expand: true,
                     cwd: '',
-                    src: ['*.html', 'css/**', 'js/**'],
+                    src: ['*.html', 'css/**', 'js/**', '!node_modules/**', '!vendor/**', 'vendor/bootstrap/dist/css/bootstrap.min.css', 'vendor/bootstrap/dist/js/bootstrap.min.js', 'vendor/jquery/dist/jquery.min.js'],
                     dest: 'output/'
+                }]
+            },
+            dist: {
+                files: [{
+                    expand: true,
+                    cwd: 'output/',
+                    src: ['css/jetal.min.css', 'js/jetal.min.js'],
+                    dest: 'dist/'
                 }]
             }
         },
@@ -61,6 +69,45 @@ module.exports = function(grunt) {
             html: 'output/**/*.html',
             temp: 'output'
         },
+        postcss: {
+            options: {
+                map: false,
+                processors: [
+                    require('autoprefixer-core')({
+                        browsers: 'last 2 versions'
+                    }),
+                    require('csswring')
+                ]
+            },
+            dist: {
+                files: [{
+                    expand: true,
+                    cwd: 'output/',
+                    src: ['css/*.css'],
+                    dest: 'dist/',
+                    ext: '.min.css'
+                }]
+            }
+        },
+        // concat: {
+        //     options: {},
+        //     dist: {
+        //         files: {
+        //             'output/js/<%= pkg.name %>.js': ['output/js/*.js']
+        //         }
+        //     }
+        // },
+        // uglify: {
+        //     options: {
+        //         // the banner is inserted at the top of the output
+        //         banner: '/*! <%= pkg.name %> <%= grunt.template.today("dd-mm-yyyy") %> */\n'
+        //     },
+        //     dist: {
+        //         files: {
+        //             'dist/js/<%= pkg.name %>.min.js': ['output/js/jetal.min.js']
+        //         }
+        //     }
+        // },
         htmlmin: {
             dist: {
                 options: {
@@ -93,29 +140,43 @@ module.exports = function(grunt) {
             options: {
                 optimizationLevel: 3
             },
-            dynamic: {
+            dist: {
                 files: [{
                     expand: true,
-                    src: ['img/*.{png,jpg,gif}'],
+                    src: ['img/*.{png,jpg,gif}', '*.ico'],
                     dest: 'dist/'
                 }]
             }
+        },
+        'sftp-deploy': {
+            dist: {
+                auth: {
+                    host: 'jetalfilm.com',
+                    port: 22,
+                    authKey: 'tor'
+                },
+                cache: 'sftpCache.json',
+                src: 'dist/',
+                dest: '/home/tor/www/dist/',
+                exclusions: [],
+                serverSep: '/',
+                concurrency: 4,
+                progress: true
+            }
         }
     });
-
     // Load NPM tasks automatically vs calling loadNpmTasks for each
     require('load-grunt-tasks')(grunt);
-
     // Making grunt default to force in order not to break the project.
     grunt.option('force', true);
-
-    grunt.registerTask('default', ['lint', 'build', 'psi-ngrok', 'watch' ]);
+    grunt.registerTask('default', ['lint', 'build', 'psi-ngrok', 'watch']);
     grunt.registerTask('lint', ['jshint', 'csslint']);
-    grunt.registerTask('build', ['remove', 'copy', 'useref', 'optimize']);
-    grunt.registerTask('optimize', ['newer:postcss', 'newer:concat', 'newer:uglify', 'newer:htmlmin', 'newer:imagemin']);
+    grunt.registerTask('build', ['clean', 'copy:output', 'useref', 'optimize']);
+    grunt.registerTask('optimize', ['postcss', 'concat', 'uglify', 'htmlmin', 'imagemin']);
+    grunt.registerTask('deploy', ['copy:dist', 'sftp-deploy']);
     grunt.registerTask('psi-ngrok', 'Run pagespeed with ngrok', function() {
         var done = this.async();
-        var port = 8083;
+        var port = 8084;
         ngrok.connect(port, function(err, url) {
             if (err !== null) {
                 grunt.fail.fatal(err);
